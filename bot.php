@@ -1,35 +1,41 @@
 <?php
-http_response_code(200);
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
 
-// Минимальный лог — сразу при вызове
-file_put_contents("log.txt", date("Y-m-d H:i:s") . " - PHP Call\n", FILE_APPEND);
+// Токен, выданный BotFather
+$TOKEN = 'ВАШ_ТОКЕН_ТУТ';
 
-// Читаем входящий JSON
-$raw = file_get_contents("php://input");
-file_put_contents("log.txt", "RAW: $raw\n", FILE_APPEND);
+// Получаем тело запроса Telegram (JSON)
+$body = file_get_contents("php://input");
+$data = json_decode($body, true);
 
-// Пытаемся распарсить JSON
-$data = json_decode($raw, true);
-file_put_contents("log.txt", "PARSED: " . print_r($data, true) . "\n", FILE_APPEND);
+// Получаем chat_id и текст сообщения
+$chat_id = $data['message']['chat']['id'] ?? null;
+$text = $data['message']['text'] ?? '';
 
-// Проверка: пришло ли сообщение
-if (isset($data["message"]["chat"]["id"])) {
-    $chat_id = $data["message"]["chat"]["id"];
-    $text = $data["message"]["text"] ?? "";
+// Функция отправки сообщения
+function sendMessage($chat_id, $text) {
+    global $TOKEN;
 
-    $token = "7446956113:AAEYChHE3Lcq6MPVB-sT0RFTVoCINie8REM"; // <-- вставь свой токен!
-    $url = "https://api.telegram.org/bot$token/sendMessage";
-
-    $response = [
+    $url = "https://api.telegram.org/bot$TOKEN/sendMessage";
+    $post_fields = [
         'chat_id' => $chat_id,
-        'text' => "Ты написал: $text"
+        'text' => $text,
     ];
 
-    file_get_contents($url . "?" . http_build_query($response));
-    file_put_contents("log.txt", "Send response\n", FILE_APPEND);
-} else {
-    file_put_contents("log.txt", "No message/chat/id\n", FILE_APPEND);
+    // cURL-запрос
+    $ch = curl_init(); 
+    curl_setopt($ch, CURLOPT_URL, $url); 
+    curl_setopt($ch, CURLOPT_POST, 1); 
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $post_fields); 
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+    curl_exec($ch); 
+    curl_close($ch);
 }
+
+// Обработка команд
+if ($text === '/start') {
+    sendMessage($chat_id, "Привет! Я простой PHP-бот 😊");
+} elseif (!empty($text)) {
+    sendMessage($chat_id, "Вы написали: $text");
+}
+
 ?>
