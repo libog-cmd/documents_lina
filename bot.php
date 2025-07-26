@@ -1,7 +1,7 @@
 <?php
 
 // Токен, выданный BotFather
-$TOKEN = 'ВАШ_ТОКЕН_ТУТ';
+$TOKEN = '8315378773:AAENNm3mM1iWM_Aiz1bfku7zCRHNfrhh9No';
 
 // Получаем тело запроса Telegram (JSON)
 $body = file_get_contents("php://input");
